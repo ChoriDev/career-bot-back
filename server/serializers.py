@@ -1,7 +1,13 @@
 from rest_framework import serializers
-from server.models import Sentence
+from server.models import Question
+from server.models import Answer
 
-class SentenceSerializer(serializers.ModelSerializer):
+class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Sentence
+        model = Question
+        fields = '__all__'
+
+class AnswerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Answer
         fields = '__all__'

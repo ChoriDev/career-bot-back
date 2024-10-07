@@ -1,13 +1,15 @@
 from django.db import models
 
-class Sentence(models.Model):
-    category = models.CharField(max_length=1000, default='카테고리')
-    question = models.CharField(max_length=1000, default='질문')
+class Question(models.Model):
+    id = models.SmallAutoField(primary_key=True)
+    category = models.CharField(max_length=1000, blank=False, null=False, default='카테고리')
+    content = models.CharField(max_length=1000, blank=False, null=False, default='질문')
 
-"""
+class Answer(models.Model):
+    id = models.BigAutoField(primary_key=True)
     student_id = models.CharField(max_length=9, default='000000000')
+    question_id = models.ForeignKey('Question', related_name='answer', on_delete=models.DO_NOTHING)
     answer1 = models.TextField(max_length=None, default='답변1')
     answer2 = models.TextField(max_length=None, default='답변2')
     comment = models.TextField(max_length=None, default='진단')
-    grade = models.CharField(max_length=2, default='등급')
-"""
+    grade = models.FloatField(default=0)
