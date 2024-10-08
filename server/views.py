@@ -34,10 +34,18 @@ class AnswerView(APIView):
     def post(self, request, student_id, question_id):
         # 클라이언트가 보낸 데이터
         data = request.data.copy()
-        print(data)
 
         data['student_id'] = student_id
         data['question_id'] = question_id
+
+        question = Question.objects.get(pk=question_id)
+
+        answer = Answer.objects.create(student_id=student_id, question_id=question, answer1=data['answer1'])
+
+        if 'answer2' in data:
+            answer.answer2 = data['answer2']
+        
+        answer.save()
 
         serializer = AnswerSerializer(data=data)
         if serializer.is_valid():
