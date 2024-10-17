@@ -80,7 +80,13 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-9. 프로젝트 시작
+9. requests 라이브러리 설치
+
+``` shell
+pip install requests
+```
+
+10. 프로젝트 시작
 
 ``` shell
 python manage.py runserver
