@@ -95,5 +95,5 @@ python manage.py migrate
 12. 프로젝트 시작
 
 ``` shell
-python manage.py runserver
+python manage.py runserver 0.0.0.0:8000
 ```
