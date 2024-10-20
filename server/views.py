@@ -6,6 +6,7 @@ from server.serializers import QuestionSerializer
 from server.serializers import AnswerSerializer
 from server.models import Question
 from server.models import Answer
+from server.request_func import send_post_to_fastapi
 
 # Create your views here.
 
@@ -35,19 +36,50 @@ class AnswerView(APIView):
         # 클라이언트가 보낸 데이터
         data = request.data.copy()
 
-        data['student_id'] = student_id
-        data['question_id'] = question_id
-
+        # 질문 객체 가져오기
         question = Question.objects.get(pk=question_id)
 
-        answer = Answer.objects.create(student_id=student_id, question_id=question, answer1=data['answer1'])
+        # answer1과 answer2를 안전하게 가져옴
+        answer1 = data.get('answer1')
+        answer2 = data.get('answer2', None)  # answer2가 없으면 None으로 설정
 
-        if 'answer2' in data:
-            answer.answer2 = data['answer2']
+        # Answer 객체 생성
+        answer = Answer.objects.create(
+            student_id=student_id,
+            question_id=question,
+            answer1=answer1,
+            answer2=answer2  # answer2를 여기서 직접 설정
+        )
+
+        # 문장 생성
+        sentence = self.create_sentence(question.content, answer1, answer2)
         
+        # Answer 객체 저장
         answer.save()
 
-        serializer = AnswerSerializer(data=data)
-        if serializer.is_valid():
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # 문장 생성
+        sentence = self.create_sentence(question.content, answer1, data.get('answer2'))
+
+        # FastAPI로 데이터 전송
+        fastapi_response = send_post_to_fastapi(sentence)
+
+        # TODO 반환되는 response를 어떻게 할 것인지 생각하기
+
+        # FastAPI 응답 처리
+        if 'error' in fastapi_response:
+            return Response(fastapi_response, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 데이터 직렬화
+        serializer = AnswerSerializer(answer)
+        
+        # Django에서 처리된 데이터를 반환
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def create_sentence(self, question_text, answer1, answer2):
+        # 질문의 "_"를 각각의 answer로 대체하여 문장을 생성
+        if answer2:
+            # 두 개의 답변이 있을 경우
+            return question_text.replace('_', answer1, 1).replace('_', answer2)  # 첫 번째 밑줄에 answer1, 두 번째 밑줄에 answer2
+        else:
+            # 하나의 답변만 있을 경우
+            return question_text.replace('_', answer1)  # 밑줄을 answer1로 대체
