@@ -12,4 +12,4 @@ class Answer(models.Model):
     answer1 = models.TextField(max_length=None, null=True, default=None)
     answer2 = models.TextField(max_length=None, null=True, default=None)
     comment = models.TextField(max_length=None, null=True, default=None)
-    grade = models.FloatField(null=True, default=None)
+    grade = models.IntegerField(null=True, default=None)
