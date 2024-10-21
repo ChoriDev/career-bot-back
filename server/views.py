@@ -33,41 +33,35 @@ class AnswerView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request, student_id, question_id):
-        # 클라이언트가 보낸 데이터
-        data = request.data.copy()
 
         # 질문 객체 가져오기
         question = Question.objects.get(pk=question_id)
 
         # answer1과 answer2를 안전하게 가져옴
-        answer1 = data.get('answer1')
-        answer2 = data.get('answer2', None)  # answer2가 없으면 None으로 설정
-
-        # Answer 객체 생성
-        answer = Answer.objects.create(
-            student_id=student_id,
-            question_id=question,
-            answer1=answer1,
-            answer2=answer2  # answer2를 여기서 직접 설정
-        )
+        answer1 = request.data.get('answer1')
+        answer2 = request.data.get('answer2', None)  # answer2가 없으면 None으로 설정
 
         # 문장 생성
         sentence = self.create_sentence(question.content, answer1, answer2)
-        
-        # Answer 객체 저장
-        answer.save()
 
         # 문장 생성
-        sentence = self.create_sentence(question.content, answer1, data.get('answer2'))
+        sentence = self.create_sentence(question.content, answer1, answer2)
 
         # FastAPI로 데이터 전송
         fastapi_response = send_post_to_fastapi(sentence)
 
-        # TODO 반환되는 response를 어떻게 할 것인지 생각하기
-
         # FastAPI 응답 처리
         if 'error' in fastapi_response:
             return Response(fastapi_response, status=status.HTTP_400_BAD_REQUEST)
+        
+         # Answer 객체 생성
+        answer = Answer.objects.create(
+            student_id=student_id,
+            question_id=question,
+            answer1=answer1,
+            answer2=answer2,
+            grade=fastapi_response.get('grade')
+        )
         
         # 데이터 직렬화
         serializer = AnswerSerializer(answer)
