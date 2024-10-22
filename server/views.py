@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
@@ -7,8 +6,6 @@ from server.serializers import AnswerSerializer
 from server.models import Question
 from server.models import Answer
 from server.request_func import send_post_to_fastapi
-
-# Create your views here.
 
 class QuestionView(APIView):
     def get(self, request):
@@ -69,11 +66,45 @@ class AnswerView(APIView):
         # Django에서 처리된 데이터를 반환
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-    def create_sentence(self, question_text, answer1, answer2):
+    def create_sentence(self, question_content, answer1, answer2):
         # 질문의 "_"를 각각의 answer로 대체하여 문장을 생성
         if answer2:
             # 두 개의 답변이 있을 경우
-            return question_text.replace('_', answer1, 1).replace('_', answer2)  # 첫 번째 밑줄에 answer1, 두 번째 밑줄에 answer2
+            return question_content.replace('_', answer1, 1).replace('_', answer2)  # 첫 번째 밑줄에 answer1, 두 번째 밑줄에 answer2
         else:
             # 하나의 답변만 있을 경우
-            return question_text.replace('_', answer1)  # 밑줄을 answer1로 대체
+            return question_content.replace('_', answer1)  # 밑줄을 answer1로 대체
+
+class ResultView(APIView):
+    def get(self, request, student_id):
+
+        answers = Answer.objects.filter(student_id=student_id).select_related('question_id')
+
+        # 빈 데이터 예외 처리
+        if not answers.exists():
+            return Response({'error': '해당 학생의 답변이 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+
+        grade_table = {
+            '자기이해 및 긍정적 자아상': [],
+            '대인관계 및 의사소통 역량': [],
+            '교육기회의 탐색': [],
+            '진로의사결정능력': [],
+            '진로 설계와 준비': [],
+            '직업정보의 탐색': [],
+            '건강한 직업의식': [],
+            '직업세계 이해': []
+        }
+        
+        for answer in answers:
+            category = answer.question_id.category
+            if category in grade_table:
+                grade_table[category].append(answer.grade)
+
+        result = {}
+        for category, grades in grade_table.items():
+            if grades:  # 빈 리스트가 아닌 경우에만 평균 계산
+                result[category] = sum(grades) / len(grades)
+            else:  # 데이터가 없는 경우 0으로 설정
+                result[category] = 0
+
+        return Response(result, status=status.HTTP_200_OK)
