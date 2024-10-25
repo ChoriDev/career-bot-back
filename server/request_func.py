@@ -1,11 +1,9 @@
 import requests
 
-def send_post_to_fastapi(sentence):
+def send_post_to_fastapi(sentence, url):
     """
     FastAPI로 POST 요청을 보내는 함수
     """
-
-    URL = 'http://career-bot-bert:8001/grade' # FastAPI 서버의 URL
 
     # FastAPI로 보낼 데이터
     request_data = {
@@ -14,7 +12,7 @@ def send_post_to_fastapi(sentence):
 
     try:
         # FastAPI로 POST 요청 전송
-        response = requests.post(URL, json=request_data)
+        response = requests.post(url, json=request_data)
         
         # FastAPI 서버의 응답 상태 확인
         if response.status_code == 200:

@@ -44,20 +44,28 @@ class AnswerView(APIView):
         # 문장 생성
         sentence = self.create_sentence(question.content, answer1, answer2)
 
-        # FastAPI로 데이터 전송
-        fastapi_response = send_post_to_fastapi(sentence)
+        # Bert 서버로 데이터 전송
+        bert_response = send_post_to_fastapi(sentence, url='http://career-bot-bert:8001/grade')
 
-        # FastAPI 응답 처리
-        if 'error' in fastapi_response:
-            return Response(fastapi_response, status=status.HTTP_400_BAD_REQUEST)
+        # Bert 서버 응답 처리
+        if 'error' in bert_response:
+            return Response(bert_response, status=status.HTTP_400_BAD_REQUEST)
+
+        # Polyglot 서버로 데이터 전송
+        polyglot_response = send_post_to_fastapi(sentence, url='http://career-bot-polyglot:8002/comment')
+
+        # Polyglot 서버 응답 처리
+        if 'error' in polyglot_response:
+            return Response(polyglot_response, status=status.HTTP_400_BAD_REQUEST)
         
-         # Answer 객체 생성
+        # Answer 객체 생성
         answer = Answer.objects.create(
             student_id=student_id,
             question_id=question,
             answer1=answer1,
             answer2=answer2,
-            grade=fastapi_response.get('grade')
+            grade=bert_response.get('grade'),
+            comment=polyglot_response.get('comment')
         )
         
         # 데이터 직렬화
