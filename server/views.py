@@ -93,26 +93,29 @@ class ResultView(APIView):
             return Response({'error': '해당 학생의 답변이 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
 
         grade_table = {
-            '자기이해 및 긍정적 자아상': [],
-            '대인관계 및 의사소통 역량': [],
-            '교육기회의 탐색': [],
-            '진로의사결정능력': [],
-            '진로 설계와 준비': [],
-            '직업정보의 탐색': [],
-            '건강한 직업의식': [],
-            '직업세계 이해': []
+            '자기이해 및 긍정적 자아상': [[], []],
+            '대인관계 및 의사소통 역량': [[], []],
+            '교육기회의 탐색': [[], []],
+            '진로의사결정능력': [[], []],
+            '진로 설계와 준비': [[], []],
+            '직업정보의 탐색': [[], []],
+            '건강한 직업의식': [[], []],
+            '직업세계 이해': [[], []]
         }
         
         for answer in answers:
             category = answer.question_id.category
             if category in grade_table:
-                grade_table[category].append(answer.grade)
+                grade_table[category][0].append(answer.comment)
+                grade_table[category][1].append(answer.grade)
 
         result = {}
         for category, grades in grade_table.items():
-            if grades:  # 빈 리스트가 아닌 경우에만 평균 계산
-                result[category] = sum(grades) / len(grades)
+            comment = grades[0]
+            if grades[1]:  # 빈 리스트가 아닌 경우에만 평균 계산
+                grade = sum(grades[1]) / len(grades[1])
             else:  # 데이터가 없는 경우 0으로 설정
-                result[category] = 0
+                grade = 0
+            result[category] = [comment, grade]
 
         return Response(result, status=status.HTTP_200_OK)
