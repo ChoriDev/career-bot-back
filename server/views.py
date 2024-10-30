@@ -1,3 +1,4 @@
+import re
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
@@ -85,7 +86,6 @@ class AnswerView(APIView):
 
 class ResultView(APIView):
     def get(self, request, student_id):
-
         answers = Answer.objects.filter(student_id=student_id).select_related('question_id')
 
         # 빈 데이터 예외 처리
@@ -106,16 +106,19 @@ class ResultView(APIView):
         for answer in answers:
             category = answer.question_id.category
             if category in grade_table:
-                grade_table[category][0].append(answer.comment)
+                # 3번째 문장까지만 자르기 위한 작업
+                sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', answer.comment)  # 문장 분할
+                shortened_comment = " ".join(sentences[:3])  # 3번째 문장까지 가져옴
+                grade_table[category][0].append(shortened_comment)  # 잘라낸 코멘트를 추가
                 grade_table[category][1].append(answer.grade)
 
         result = {}
         for category, grades in grade_table.items():
-            comment = grades[0]
+            comments = grades[0]
             if grades[1]:  # 빈 리스트가 아닌 경우에만 평균 계산
                 grade = sum(grades[1]) / len(grades[1])
             else:  # 데이터가 없는 경우 0으로 설정
                 grade = 0
-            result[category] = [comment, grade]
+            result[category] = [comments, grade]
 
         return Response(result, status=status.HTTP_200_OK)
