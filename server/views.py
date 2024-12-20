@@ -71,7 +71,7 @@ class AnswerView(APIView):
 
         # # Polyglot 서버 응답 처리
         # if 'error' in polyglot_response:
-        #     return Response(polyglot_response, status=status.HTTP_400_BAD_REQUEST)
+            # return Response(polyglot_response, status=status.HTTP_400_BAD_REQUEST)
         
         # Answer 객체 생성
         # answer = Answer.objects.create(
@@ -104,9 +104,9 @@ class ResultView(APIView):
             '교육기회의 탐색': [],
             '진로의사결정능력': [],
             '진로 설계와 준비': [],
-            '직업정보의 탐색': [],
+            # '직업정보의 탐색': [],
             '건강한 직업의식': [],
-            '직업세계 이해': []
+            # '직업세계 이해': []
         }
 
         for answer in answers:
