@@ -21,12 +21,7 @@ class QuestionView(APIView):
     def get(self, request):
 
         # 데이터베이스에서 모든 Question 객체 가져오기
-        # questions = Question.objects.all()
-        # 데이터베이스에서 데모 버전 Question 객체 가져오기
-        demo_question_id = [1, 4, 5, 8, 13, 18, 22, 30, 31, 34]
-        questions = []
-        for i in demo_question_id:
-            questions.append(Question.objects.get(id=i))
+        questions = Question.objects.all()
     
         # 여러 객체를 직렬화할 경우, many=True 옵션을 추가
         serializer = QuestionSerializer(questions, many=True)
@@ -67,28 +62,27 @@ class AnswerView(APIView):
             return Response(bert_response, status=status.HTTP_400_BAD_REQUEST)
 
         # # Polyglot 서버로 데이터 전송
-        # polyglot_response = send_post_to_fastapi(sentence, url='http://career-bot-polyglot:8002/comment')
+        polyglot_response = send_post_to_fastapi(sentence, url='http://career-bot-polyglot:8002/comment')
 
         # # Polyglot 서버 응답 처리
-        # if 'error' in polyglot_response:
-            # return Response(polyglot_response, status=status.HTTP_400_BAD_REQUEST)
+        if 'error' in polyglot_response:
+            return Response(polyglot_response, status=status.HTTP_400_BAD_REQUEST)
         
         # Answer 객체 생성
-        # answer = Answer.objects.create(
-        #     student_id=student_id,
-        #     question_id=question,
-        #     answer1=answer1,
-        #     answer2=answer2,
-        #     grade=bert_response.get('grade'),
-        #     comment=polyglot_response.get('comment')
-        # )
+        answer = Answer.objects.create(
+            student_id=student_id,
+            question_id=question,
+            answer1=answer1,
+            answer2=answer2,
+            grade=bert_response.get('grade'),
+            comment=polyglot_response.get('comment')
+        )
         
         # 데이터 직렬화
-        # serializer = AnswerSerializer(answer)
+        serializer = AnswerSerializer(answer)
         
         # Django에서 처리된 데이터를 반환
-        # return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class ResultView(APIView):
     def get(self, request, student_id):
@@ -104,9 +98,9 @@ class ResultView(APIView):
             '교육기회의 탐색': [],
             '진로의사결정능력': [],
             '진로 설계와 준비': [],
-            # '직업정보의 탐색': [],
+            '직업정보의 탐색': [],
             '건강한 직업의식': [],
-            # '직업세계 이해': []
+            '직업세계 이해': []
         }
 
         for answer in answers:
